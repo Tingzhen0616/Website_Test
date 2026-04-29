@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员后台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
+    <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+    <style>
+        /* 自定义样式 */
+        .ql-editor img {
+            max-width: 100%;
+            height: auto;
+        }
+        .ql-editor img:hover {
+            cursor: pointer;
+            outline: 2px solid #3b82f6;
+        }
+        /* 图片对齐样式 */
+        .ql-editor img.img-align-left {
+            float: left;
+            margin-right: 1rem;
+        }
+        .ql-editor img.img-align-center {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .ql-editor img.img-align-right {
+            float: right;
+            margin-left: 1rem;
+        }
+        /* 字体大小下拉菜单 */
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="10px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="10px"]::before {
+            content: '10px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before {
+            content: '12px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="14px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before {
+            content: '14px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="16px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="16px"]::before {
+            content: '16px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="18px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before {
+            content: '18px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before {
+            content: '20px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="24px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before {
+            content: '24px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before {
+            content: '28px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="32px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="32px"]::before {
+            content: '32px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="36px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="36px"]::before {
+            content: '36px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="48px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="48px"]::before {
+            content: '48px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="60px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="60px"]::before {
+            content: '60px';
+        }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="72px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="72px"]::before {
+            content: '72px';
+        }
+        /* 字体下拉菜单 */
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="sans-serif"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="sans-serif"]::before {
+            content: 'Sans Serif';
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before {
+            content: 'Serif';
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before {
+            content: 'Monospace';
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Microsoft YaHei"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Microsoft YaHei"]::before {
+            content: '微软雅黑';
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="SimSun"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="SimSun"]::before {
+            content: '宋体';
+            font-family: 'SimSun', serif;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="KaiTi"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="KaiTi"]::before {
+            content: '楷体';
+            font-family: 'KaiTi', serif;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="FangSong"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="FangSong"]::before {
+            content: '仿宋';
+            font-family: 'FangSong', serif;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Heiti SC"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Heiti SC"]::before {
+            content: '黑体';
+            font-family: 'Heiti SC', sans-serif;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="STXingkai"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="STXingkai"]::before {
+            content: '行楷';
+            font-family: 'STXingkai', cursive;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="STLiti"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="STLiti"]::before {
+            content: '隶书';
+            font-family: 'STLiti', cursive;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="YouYuan"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="YouYuan"]::before {
+            content: '幼圆';
+            font-family: 'YouYuan', sans-serif;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Arial"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before {
+            content: 'Arial';
+            font-family: 'Arial', sans-serif;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Georgia"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Georgia"]::before {
+            content: 'Georgia';
+            font-family: 'Georgia', serif;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Times New Roman"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Times New Roman"]::before {
+            content: 'Times New Roman';
+            font-family: 'Times New Roman', serif;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Courier New"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Courier New"]::before {
+            content: 'Courier New';
+            font-family: 'Courier New', monospace;
+        }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Verdana"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Verdana"]::before {
+            content: 'Verdana';
+            font-family: 'Verdana', sans-serif;
+        }
+        /* 编辑器内容字体应用 */
+        .ql-font-sans-serif { font-family: sans-serif; }
+        .ql-font-serif { font-family: serif; }
+        .ql-font-monospace { font-family: monospace; }
+        .ql-font-Microsoft-YaHei { font-family: 'Microsoft YaHei', sans-serif; }
+        .ql-font-SimSun { font-family: 'SimSun', serif; }
+        .ql-font-KaiTi { font-family: 'KaiTi', serif; }
+        .ql-font-FangSong { font-family: 'FangSong', serif; }
+        .ql-font-Heiti-SC { font-family: 'Heiti SC', sans-serif; }
+        .ql-font-STXingkai { font-family: 'STXingkai', cursive; }
+        .ql-font-STLiti { font-family: 'STLiti', cursive; }
+        .ql-font-YouYuan { font-family: 'YouYuan', sans-serif; }
+        .ql-font-Arial { font-family: 'Arial', sans-serif; }
+        .ql-font-Georgia { font-family: 'Georgia', serif; }
+        .ql-font-Times-New-Roman { font-family: 'Times New Roman', serif; }
+        .ql-font-Courier-New { font-family: 'Courier New', monospace; }
+        .ql-font-Verdana { font-family: 'Verdana', sans-serif; }
+        /* 编辑器内字体大小样式 */
+        .ql-editor .ql-size-10px { font-size: 10px; }
+        .ql-editor .ql-size-12px { font-size: 12px; }
+        .ql-editor .ql-size-14px { font-size: 14px; }
+        .ql-editor .ql-size-16px { font-size: 16px; }
+        .ql-editor .ql-size-18px { font-size: 18px; }
+        .ql-editor .ql-size-20px { font-size: 20px; }
+        .ql-editor .ql-size-24px { font-size: 24px; }
+        .ql-editor .ql-size-28px { font-size: 28px; }
+        .ql-editor .ql-size-32px { font-size: 32px; }
+        .ql-editor .ql-size-36px { font-size: 36px; }
+        .ql-editor .ql-size-48px { font-size: 48px; }
+        .ql-editor .ql-size-60px { font-size: 60px; }
+        .ql-editor .ql-size-72px { font-size: 72px; }
+        /* 图片调整大小的控制手柄 */
+        .img-resizer {
+            position: relative;
+            display: inline-block;
+        }
+        .img-resizer img {
+            display: block;
+        }
+        .resize-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #3b82f6;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: nwse-resize;
+        }
+        .resize-handle.se {
+            bottom: -6px;
+            right: -6px;
+        }
+        /* 图片对齐工具栏 */
+        .image-align-toolbar {
+            position: absolute;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .image-align-toolbar button {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .image-align-toolbar button:hover {
+            background: #f3f4f6;
+        }
+        .image-align-toolbar button.active {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+        /* 图片裁剪模态框样式 */
+        #cropImage {
+            display: block;
+            max-width: 100%;
+        }
+        #cropPreview {
+            overflow: hidden;
+        }
+        #cropPreview img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        /* 上下标样式 */
+        .ql-editor sup {
+            vertical-align: super;
+            font-size: 75%;
+            line-height: 0;
+        }
+        .ql-editor sub {
+            vertical-align: sub;
+            font-size: 75%;
+            line-height: 0;
+        }
+        /* 上下标按钮图标 */
+        .ql-snow .ql-formats .ql-superscript::before {
+            content: 'x²';
+            font-size: 12px;
+        }
+        .ql-snow .ql-formats .ql-subscript::before {
+            content: 'x₂';
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- 登录界面 -->
+    <div id="loginSection" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">管理员登录</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                    <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入密码">
+                </div>
+                <button onclick="login()" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition">登录</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 管理界面 -->
+    <div id="adminSection" class="hidden">
+        <!-- 导航栏 -->
+        <nav class="bg-white shadow-md">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">作品管理</h1>
+                <div class="space-x-4">
+                    <a href="index.html" class="text-blue-500 hover:text-blue-600">查看前台</a>
+                    <button onclick="logout()" class="text-red-500 hover:text-red-600">退出登录</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-6xl mx-auto px-4 py-8">
+            <!-- 添加作品表单 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4">添加新作品</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">作品名称</label>
+                        <input type="text" id="productName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="输入作品名称">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">作品详情</label>
+                        <div id="detailEditor" class="bg-white border rounded-md"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">作品图片（可选）</label>
+                        <input type="file" id="productImage" accept="image/*" class="w-full" onchange="previewImage(event)">
+                        <div id="imagePreview" class="mt-2 hidden">
+                            <img id="preview" class="max-w-xs h-32 object-cover rounded">
+                        </div>
+                    </div>
+                    <button onclick="addProduct()" class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition">添加作品</button>
+                </div>
+            </div>
+
+            <!-- 作品列表 -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">作品列表</h2>
+                    <button id="saveOrderBtn" onclick="saveSortOrder()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition hidden">保存排序</button>
+                </div>
+                <div id="sortableProductList" class="space-y-4">
+                    <!-- 作品列表将在这里显示 -->
+                </div>
+                <div id="adminEmptyState" class="text-center py-8 text-gray-500 hidden">
+                    暂无作品
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 编辑作品模态框 -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">编辑作品</h2>
+                <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <input type="hidden" id="editProductId">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">作品名称</label>
+                        <input type="text" id="editProductName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">作品详情</label>
+                        <div id="editDetailEditor" class="bg-white border rounded-md"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">作品图片（留空则不修改）</label>
+                        <input type="file" id="editProductImage" accept="image/*" class="w-full" onchange="previewEditImage(event)">
+                        <div id="editImagePreview" class="mt-2 hidden">
+                            <img id="editPreview" class="max-w-xs h-32 object-cover rounded">
+                        </div>
+                    </div>
+                    <button onclick="saveEditProduct()" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">保存修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片裁剪模态框 -->
+    <div id="cropModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+                <h2 id="cropModalTitle" class="text-2xl font-bold text-gray-800">裁剪图片</h2>
+                <button onclick="cancelCrop()" class="text-gray-500 hover:text-gray-700 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-600 mb-2">拖拽调整裁剪区域，滚轮缩放</p>
+                        <div class="max-h-96 overflow-hidden bg-gray-100 rounded-lg">
+                            <img id="cropImage" class="max-w-full">
+                        </div>
+                    </div>
+                    <div class="lg:w-64">
+                        <p class="text-sm text-gray-600 mb-2">预览效果</p>
+                        <div id="cropPreview" class="w-full h-48 bg-gray-100 rounded-lg overflow-hidden"></div>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button onclick="cancelCrop()" class="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition">取消</button>
+                    <button onclick="confirmCrop()" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">确认裁剪</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
+    <script>
+        // Supabase 配置
+        const SUPABASE_URL = 'https://tdtrpsmqzegmrywbcorh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkdHJwc21xemVnbXJ5d2Jjb3JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2ODgzNTIsImV4cCI6MjA5MjI2NDM1Mn0._Yr7Uw6vhRgj7hI5deUJ5WLmcd_odgEm-Q1aiwWCk3g';
+        
+        // 初始化 Supabase 客户端
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 默认密码
+        const ADMIN_PASSWORD = 'admin123';
+        let currentFile = null;
+        let quillEditor = null;
+        let editQuillEditor = null;
+        let editCurrentFile = null;
+        let cropper = null;
+        let currentCropCallback = null;
+        let currentCropFile = null;
+        let productsCache = [];
+
+        // 检查登录状态
+        function checkLogin() {
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                showAdminSection();
+            }
+        }
+
+        // 登录
+        function login() {
+            const password = document.getElementById('password').value;
+            if (password === ADMIN_PASSWORD) {
+                localStorage.setItem('isLoggedIn', 'true');
+                showAdminSection();
+            } else {
+                alert('密码错误！');
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            location.reload();
+        }
+
+        // 显示管理界面
+        function showAdminSection() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('adminSection').classList.remove('hidden');
+            
+            if (!quillEditor) {
+                var fonts = ['sans-serif', 'serif', 'monospace', 'Microsoft YaHei', 'SimSun', 'KaiTi', 'FangSong', 'Heiti SC', 'STXingkai', 'STLiti', 'YouYuan', 'Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana'];
+                var Font = Quill.import('formats/font');
+                Font.whitelist = fonts;
+                Quill.register(Font, true);
+                
+                var sizes = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px', '60px', '72px'];
+                var Size = Quill.import('formats/size');
+                Size.whitelist = sizes;
+                Quill.register(Size, true);
+                
+                quillEditor = new Quill('#detailEditor', {
+                    theme: 'snow',
+                    placeholder: '输入作品详情...',
+                    modules: {
+                        toolbar: {
+                            container: [
+                                [{ 'font': fonts }],
+                                [{ 'size': ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px', '60px', '72px'] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'script': 'super' }, { 'script': 'sub' }],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'align': [] }],
+                                ['link', 'image'],
+                                ['clean']
+                            ],
+                            handlers: {
+                                image: function() {
+                                    const input = document.createElement('input');
+                                    input.setAttribute('type', 'file');
+                                    input.setAttribute('accept', 'image/*');
+                                    input.click();
+                                    input.onchange = async function() {
+                                        const file = input.files[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onload = function(e) {
+                                                openCropModal(e.target.result, null, async function(croppedBlob) {
+                                                    const croppedFile = new File([croppedBlob], file.name, { type: 'image/jpeg' });
+                                                    const imageUrl = await uploadImage(croppedFile);
+                                                    if (imageUrl) {
+                                                        const range = quillEditor.getSelection(true);
+                                                        quillEditor.insertEmbed(range.index, 'image', imageUrl);
+                                                        console.log('图片已插入编辑器');
+                                                    } else {
+                                                        console.error('图片上传失败，未插入编辑器');
+                                                    }
+                                                }, file);
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    };
+                                }
+                            }
+                        }
+                    }
+                });
+                initImageResize(quillEditor, '#detailEditor');
+            }
+            
+            loadAdminProducts();
+        }
+
+        // 图片预览
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    openCropModal(e.target.result, 4/3, function(croppedBlob, originalFile) {
+                        currentFile = new File([croppedBlob], originalFile.name, { type: 'image/jpeg' });
+                        const previewReader = new FileReader();
+                        previewReader.onload = function(pe) {
+                            document.getElementById('preview').src = pe.target.result;
+                            document.getElementById('imagePreview').classList.remove('hidden');
+                        };
+                        previewReader.readAsDataURL(currentFile);
+                    }, file);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 上传图片到 Supabase Storage
+        async function uploadImage(file) {
+            console.log('开始上传图片:', file.name, '大小:', file.size, '类型:', file.type);
+            
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            
+            try {
+                const { data, error } = await supabaseClient.storage
+                    .from('product-images')
+                    .upload(fileName, file);
+                
+                console.log('Storage 上传响应:', { data, error });
+                
+                if (error) {
+                    console.error('上传图片失败:', error);
+                    alert('图片上传失败: ' + error.message + '\n\n请检查：\n1. Supabase Storage 中是否存在 "product-images" bucket\n2. Storage 的 RLS 策略是否允许上传');
+                    return null;
+                }
+                
+                // 获取图片的公开 URL
+                const { data: urlData, error: urlError } = supabaseClient.storage
+                    .from('product-images')
+                    .getPublicUrl(fileName);
+                
+                if (urlError) {
+                    console.error('获取公开 URL 失败:', urlError);
+                    return null;
+                }
+                
+                const publicUrl = urlData.publicUrl;
+                console.log('图片上传成功，公开 URL:', publicUrl);
+                
+                return publicUrl;
+            } catch (err) {
+                console.error('上传图片异常:', err);
+                alert('上传图片异常: ' + err.message);
+                return null;
+            }
+        }
+
+        // 添加作品
+        async function addProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const detail = quillEditor.root.innerHTML;
+            
+            if (!name) {
+                alert('请填写作品名称！');
+                return;
+            }
+
+            try {
+                let imageUrl = null;
+                
+                if (currentFile) {
+                    imageUrl = await uploadImage(currentFile);
+                    if (!imageUrl) {
+                        alert('图片上传失败，请重试');
+                        return;
+                    }
+                }
+
+                // 获取当前最大 display_order
+                const { data: maxOrderData } = await supabaseClient
+                    .from('products')
+                    .select('display_order')
+                    .order('display_order', { ascending: false })
+                    .limit(1);
+
+                const maxOrder = maxOrderData && maxOrderData[0] ? maxOrderData[0].display_order : 0;
+
+                const productData = { 
+                    name: name, 
+                    description: '', 
+                    detail: detail,
+                    created_at: new Date().toISOString(),
+                    display_order: maxOrder + 1
+                };
+                
+                if (imageUrl) {
+                    productData.image_url = imageUrl;
+                }
+
+                console.log('准备保存的数据:', productData);
+
+                // 保存作品信息到数据库
+                const { data, error, status, statusText } = await supabaseClient
+                    .from('products')
+                    .insert([productData])
+                    .select();
+
+                console.log('Supabase 响应:', { data, error, status, statusText });
+
+                if (error) {
+                    console.error('保存作品失败:', error);
+                    alert('保存作品失败: ' + (error.message || '请检查数据库配置'));
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    console.error('数据未保存，返回数据为空');
+                    alert('数据保存失败：数据库未返回保存的记录。请检查：\n1. products 表是否存在\n2. RLS 策略是否允许插入\n3. 表结构是否包含所有字段（id, name, description, detail, image_url, created_at）');
+                    return;
+                }
+
+                console.log('保存成功，返回的数据:', data);
+
+                // 清空表单
+                document.getElementById('productName').value = '';
+                document.getElementById('productImage').value = '';
+                document.getElementById('imagePreview').classList.add('hidden');
+                quillEditor.setContents([]);
+                currentFile = null;
+
+                loadAdminProducts();
+                alert('作品添加成功！');
+            } catch (err) {
+                console.error('添加作品出错:', err);
+                alert('添加作品出错: ' + err.message);
+            }
+        }
+
+        // 加载作品列表（管理界面）
+        async function loadAdminProducts() {
+            const productList = document.getElementById('sortableProductList');
+            const emptyState = document.getElementById('adminEmptyState');
+            
+            try {
+                const { data: products, error } = await supabaseClient
+                    .from('products')
+                    .select('*')
+                    .order('display_order', { ascending: true });
+                
+                if (error) {
+                    console.error('加载作品失败:', error);
+                    return;
+                }
+                
+                if (!products || products.length === 0) {
+                    productList.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    productsCache = [];
+                    return;
+                }
+                
+                productsCache = products;
+                emptyState.classList.add('hidden');
+                productList.innerHTML = products.map(product => `
+                    <div class="flex items-center space-x-4 p-4 border rounded-lg" data-product-id="${product.id}">
+                        <div class="drag-handle cursor-move text-gray-400 hover:text-gray-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                            </svg>
+                        </div>
+                        ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" class="w-24 h-24 object-cover rounded">` : '<div class="w-24 h-24 bg-gray-200 rounded flex items-center justify-center text-gray-400">无图片</div>'}
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-lg">${product.name}</h3>
+                            <p class="text-gray-400 text-xs mt-1">添加时间: ${new Date(product.created_at).toLocaleString()}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button data-product-id="${product.id}" onclick="editProductById(this.dataset.productId)" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">编辑</button>
+                            <button onclick="deleteProduct(${product.id})" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                initSortable();
+            } catch (err) {
+                console.error('加载作品出错:', err);
+            }
+        }
+
+        // 删除作品
+        async function deleteProduct(id) {
+            if (!confirm('确定要删除这个作品吗？')) return;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('products')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) {
+                    console.error('删除作品失败:', error);
+                    alert('删除失败，请重试');
+                    return;
+                }
+                
+                loadAdminProducts();
+            } catch (err) {
+                console.error('删除作品出错:', err);
+            }
+        }
+
+        let sortable = null;
+        let orderChanged = false;
+
+        function initSortable() {
+            const list = document.getElementById('sortableProductList');
+            if (!list) return;
+            
+            if (sortable) {
+                sortable.destroy();
+            }
+            
+            sortable = new Sortable(list, {
+                animation: 150,
+                handle: '.drag-handle',
+                onEnd: function() {
+                    orderChanged = true;
+                    document.getElementById('saveOrderBtn').classList.remove('hidden');
+                }
+            });
+        }
+
+        async function saveSortOrder() {
+            const list = document.getElementById('sortableProductList');
+            const items = list.querySelectorAll('[data-product-id]');
+            
+            try {
+                // 逐个更新每个作品的 display_order
+                for (let index = 0; index < items.length; index++) {
+                    const item = items[index];
+                    const productId = parseInt(item.dataset.productId);
+                    
+                    const { error } = await supabaseClient
+                        .from('products')
+                        .update({ display_order: index + 1 })
+                        .eq('id', productId);
+                    
+                    if (error) {
+                        console.error('更新作品排序失败:', error);
+                        alert('保存排序失败: ' + error.message);
+                        return;
+                    }
+                }
+                
+                orderChanged = false;
+                document.getElementById('saveOrderBtn').classList.add('hidden');
+                alert('排序保存成功！');
+            } catch (err) {
+                console.error('保存排序出错:', err);
+                alert('保存排序出错: ' + err.message);
+            }
+        }
+
+        function editProductById(productId) {
+            console.log('=== editProductById 调试 ===');
+            console.log('传入的 productId:', productId, '类型:', typeof productId);
+            console.log('productsCache:', productsCache.map(p => ({ id: p.id, idType: typeof p.id })));
+            
+            const product = productsCache.find(p => {
+                const match = p.id == productId || p.id === parseInt(productId);
+                console.log(`比较: p.id=${p.id}(${typeof p.id}) vs productId=${productId}(${typeof productId}) => ${match}`);
+                return match;
+            });
+            
+            console.log('找到的产品:', product);
+            if (product) {
+                editProduct(product);
+            } else {
+                console.error('未找到产品，productId:', productId);
+            }
+        }
+
+        function previewEditImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    openCropModal(e.target.result, 4/3, function(croppedBlob, originalFile) {
+                        editCurrentFile = new File([croppedBlob], originalFile.name, { type: 'image/jpeg' });
+                        const previewReader = new FileReader();
+                        previewReader.onload = function(pe) {
+                            document.getElementById('editPreview').src = pe.target.result;
+                            document.getElementById('editImagePreview').classList.remove('hidden');
+                        };
+                        previewReader.readAsDataURL(editCurrentFile);
+                    }, file);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function editProduct(product) {
+            console.log('=== editProduct 调试 ===');
+            console.log('传入的 product:', product);
+            console.log('product.id:', product.id, '类型:', typeof product.id);
+            console.log('product.detail 长度:', product.detail ? product.detail.length : 0);
+            
+            document.getElementById('editProductId').value = product.id;
+            document.getElementById('editProductName').value = product.name;
+            
+            if (!editQuillEditor) {
+                var fonts = ['sans-serif', 'serif', 'monospace', 'Microsoft YaHei', 'SimSun', 'KaiTi', 'FangSong', 'Heiti SC', 'STXingkai', 'STLiti', 'YouYuan', 'Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana'];
+                var Font = Quill.import('formats/font');
+                Font.whitelist = fonts;
+                Quill.register(Font, true);
+                
+                var sizes = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px', '60px', '72px'];
+                var Size = Quill.import('formats/size');
+                Size.whitelist = sizes;
+                Quill.register(Size, true);
+                
+                editQuillEditor = new Quill('#editDetailEditor', {
+                    theme: 'snow',
+                    placeholder: '输入作品详情...',
+                    modules: {
+                        toolbar: {
+                            container: [
+                                [{ 'font': fonts }],
+                                [{ 'size': ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px', '60px', '72px'] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'script': 'super' }, { 'script': 'sub' }],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'align': [] }],
+                                ['link', 'image'],
+                                ['clean']
+                            ],
+                            handlers: {
+                                image: function() {
+                                    const input = document.createElement('input');
+                                    input.setAttribute('type', 'file');
+                                    input.setAttribute('accept', 'image/*');
+                                    input.click();
+                                    input.onchange = async function() {
+                                        const file = input.files[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onload = function(e) {
+                                                openCropModal(e.target.result, null, async function(croppedBlob) {
+                                                    const croppedFile = new File([croppedBlob], file.name, { type: 'image/jpeg' });
+                                                    const imageUrl = await uploadImage(croppedFile);
+                                                    if (imageUrl) {
+                                                        const range = editQuillEditor.getSelection(true);
+                                                        editQuillEditor.insertEmbed(range.index, 'image', imageUrl);
+                                                        console.log('图片已插入编辑器');
+                                                    } else {
+                                                        console.error('图片上传失败，未插入编辑器');
+                                                    }
+                                                }, file);
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    };
+                                }
+                            }
+                        }
+                    }
+                });
+                initImageResize(editQuillEditor, '#editDetailEditor');
+            }
+            
+            editQuillEditor.root.innerHTML = product.detail || '';
+            
+            document.getElementById('editImagePreview').classList.add('hidden');
+            editCurrentFile = null;
+            
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        async function saveEditProduct() {
+            const idInput = document.getElementById('editProductId').value;
+            const id = parseInt(idInput, 10);
+            const name = document.getElementById('editProductName').value.trim();
+            const detail = editQuillEditor.root.innerHTML;
+            
+            console.log('=== 调试信息 ===');
+            console.log('输入的 ID:', idInput, '转换后:', id, '类型:', typeof id);
+            console.log('作品名称:', name);
+            console.log('详情内容长度:', detail.length);
+            console.log('productsCache 中的 ID 列表:', productsCache.map(p => p.id));
+            
+            if (!name) {
+                alert('请填写作品名称！');
+                return;
+            }
+
+            try {
+                let imageUrl = null;
+                
+                if (editCurrentFile) {
+                    imageUrl = await uploadImage(editCurrentFile);
+                    if (!imageUrl) {
+                        alert('图片上传失败，请重试');
+                        return;
+                    }
+                }
+
+                const updateData = {
+                    name: name,
+                    detail: detail
+                };
+                
+                if (imageUrl) {
+                    updateData.image_url = imageUrl;
+                }
+
+                console.log('准备更新的数据:', updateData);
+                console.log('更新条件: id =', id);
+
+                const { data: checkData } = await supabaseClient
+                    .from('products')
+                    .select('id, name')
+                    .eq('id', id);
+                console.log('数据库中 ID=' + id + ' 的记录:', checkData);
+
+                const { data, error, status, statusText } = await supabaseClient
+                    .from('products')
+                    .update(updateData)
+                    .eq('id', id)
+                    .select();
+                
+                console.log('Supabase 更新响应:', { data, error, status, statusText });
+
+                if (error) {
+                    console.error('更新作品失败:', error);
+                    alert('更新作品失败: ' + (error.message || '请检查数据库配置'));
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    console.error('数据未更新，返回数据为空');
+                    alert('数据更新失败：数据库未返回更新的记录。请检查：\n1. products 表是否存在\n2. RLS 策略是否允许更新\n3. 记录 ID 是否存在');
+                    return;
+                }
+
+                console.log('更新成功，返回的数据:', data);
+
+                closeEditModal();
+                loadAdminProducts();
+                alert('作品更新成功！');
+            } catch (err) {
+                console.error('更新作品出错:', err);
+                alert('更新作品出错: ' + err.message);
+            }
+        }
+
+        function openCropModal(imageSrc, aspectRatio, callback, file) {
+            currentCropCallback = callback;
+            currentCropFile = file || null;
+            
+            const modal = document.getElementById('cropModal');
+            const cropImage = document.getElementById('cropImage');
+            const cropPreview = document.getElementById('cropPreview');
+            const cropModalTitle = document.getElementById('cropModalTitle');
+            
+            cropModalTitle.textContent = aspectRatio ? '裁剪封面图' : '裁剪详情图片';
+            
+            cropImage.src = imageSrc;
+            cropPreview.innerHTML = '';
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            
+            if (cropper) {
+                cropper.destroy();
+            }
+            
+            cropper = new Cropper(cropImage, {
+                aspectRatio: aspectRatio || NaN,
+                viewMode: 1,
+                autoCropArea: 0.8,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: true,
+                preview: '#cropPreview'
+            });
+        }
+
+        function confirmCrop() {
+            if (!cropper) return;
+            
+            const canvas = cropper.getCroppedCanvas({
+                maxWidth: 1920,
+                maxHeight: 1080,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+            
+            canvas.toBlob(async function(blob) {
+                if (currentCropCallback) {
+                    await currentCropCallback(blob, currentCropFile);
+                }
+                cancelCrop();
+            }, 'image/jpeg', 0.9);
+        }
+
+        function cancelCrop() {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            currentCropCallback = null;
+            currentCropFile = null;
+            
+            const modal = document.getElementById('cropModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        // 图片大小调整和对齐功能
+        function initImageResize(editor, selector) {
+            const editorContainer = document.querySelector(selector);
+            if (!editorContainer) return;
+            
+            let selectedImg = null;
+            let resizer = null;
+            let alignToolbar = null;
+            
+            editorContainer.addEventListener('click', function(e) {
+                if (e.target.tagName === 'IMG') {
+                    selectedImg = e.target;
+                    removeResizer();
+                    removeAlignToolbar();
+                    createResizer(selectedImg);
+                    createAlignToolbar(selectedImg);
+                } else if (!e.target.closest('.image-align-toolbar') && !e.target.closest('.resize-handle')) {
+                    removeResizer();
+                    removeAlignToolbar();
+                }
+            });
+            
+            function createAlignToolbar(img) {
+                alignToolbar = document.createElement('div');
+                alignToolbar.className = 'image-align-toolbar';
+                
+                const alignLeft = document.createElement('button');
+                alignLeft.textContent = '◀';
+                alignLeft.title = '左对齐';
+                alignLeft.onclick = () => setImageAlignment(img, 'left');
+                
+                const alignCenter = document.createElement('button');
+                alignCenter.textContent = '■';
+                alignCenter.title = '居中';
+                alignCenter.onclick = () => setImageAlignment(img, 'center');
+                
+                const alignRight = document.createElement('button');
+                alignRight.textContent = '▶';
+                alignRight.title = '右对齐';
+                alignRight.onclick = () => setImageAlignment(img, 'right');
+                
+                alignToolbar.appendChild(alignLeft);
+                alignToolbar.appendChild(alignCenter);
+                alignToolbar.appendChild(alignRight);
+                
+                document.body.appendChild(alignToolbar);
+                positionAlignToolbar(img);
+                
+                const currentAlign = getCurrentAlignment(img);
+                if (currentAlign === 'left') alignLeft.classList.add('active');
+                else if (currentAlign === 'center') alignCenter.classList.add('active');
+                else if (currentAlign === 'right') alignRight.classList.add('active');
+            }
+            
+            function getCurrentAlignment(img) {
+                if (img.classList.contains('img-align-left')) return 'left';
+                if (img.classList.contains('img-align-center')) return 'center';
+                if (img.classList.contains('img-align-right')) return 'right';
+                return 'none';
+            }
+            
+            function setImageAlignment(img, align) {
+                img.classList.remove('img-align-left', 'img-align-center', 'img-align-right');
+                
+                if (align === 'left') img.classList.add('img-align-left');
+                else if (align === 'center') img.classList.add('img-align-center');
+                else if (align === 'right') img.classList.add('img-align-right');
+                
+                const buttons = alignToolbar.querySelectorAll('button');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                
+                const btnMap = { left: 0, center: 1, right: 2 };
+                buttons[btnMap[align]]?.classList.add('active');
+                
+                if (resizer) {
+                    updateResizerPosition(img);
+                }
+                positionAlignToolbar(img);
+            }
+            
+            function positionAlignToolbar(img) {
+                const rect = img.getBoundingClientRect();
+                const toolbarWidth = 96;
+                let left = rect.left + (rect.width / 2) - (toolbarWidth / 2);
+                let top = rect.top - 45;
+                
+                if (left < 10) left = 10;
+                if (top < 10) top = rect.bottom + 10;
+                
+                alignToolbar.style.left = left + 'px';
+                alignToolbar.style.top = top + 'px';
+            }
+            
+            function removeAlignToolbar() {
+                if (alignToolbar) {
+                    alignToolbar.remove();
+                    alignToolbar = null;
+                }
+            }
+            
+            function createResizer(img) {
+                resizer = document.createElement('div');
+                resizer.className = 'img-resizer';
+                resizer.style.position = 'absolute';
+                resizer.style.zIndex = '10';
+                
+                updateResizerPosition(img);
+                
+                const handle = document.createElement('div');
+                handle.className = 'resize-handle se';
+                resizer.appendChild(handle);
+                
+                editorContainer.appendChild(resizer);
+                
+                let isResizing = false;
+                let startX, startY, startWidth, startHeight;
+                
+                handle.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isResizing = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startWidth = img.width;
+                    startHeight = img.height;
+                    
+                    document.addEventListener('mousemove', resize);
+                    document.addEventListener('mouseup', stopResize);
+                });
+                
+                function resize(e) {
+                    if (!isResizing) return;
+                    
+                    const aspectRatio = startWidth / startHeight;
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    
+                    let newWidth = startWidth + deltaX;
+                    let newHeight = startHeight + deltaY;
+                    
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        newHeight = newWidth / aspectRatio;
+                    } else {
+                        newWidth = newHeight * aspectRatio;
+                    }
+                    
+                    if (newWidth > 50 && newHeight > 50) {
+                        img.style.width = newWidth + 'px';
+                        img.style.height = newHeight + 'px';
+                        updateResizerPosition(img);
+                        if (alignToolbar) {
+                            positionAlignToolbar(img);
+                        }
+                    }
+                }
+                
+                function stopResize() {
+                    isResizing = false;
+                    document.removeEventListener('mousemove', resize);
+                    document.removeEventListener('mouseup', stopResize);
+                }
+            }
+            
+            function updateResizerPosition(img) {
+                const rect = img.getBoundingClientRect();
+                const editorRect = editorContainer.getBoundingClientRect();
+                
+                resizer.style.left = (rect.left - editorRect.left + editorContainer.scrollLeft) + 'px';
+                resizer.style.top = (rect.top - editorRect.top + editorContainer.scrollTop) + 'px';
+                resizer.style.width = img.offsetWidth + 'px';
+                resizer.style.height = img.offsetHeight + 'px';
+            }
+            
+            function removeResizer() {
+                if (resizer) {
+                    resizer.remove();
+                    resizer = null;
+                }
+            }
+        }
+
+        // 页面加载时检查登录状态
+        checkLogin();
+    </script>
+</body>
+</html>
